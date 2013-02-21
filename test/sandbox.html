@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" href="./mocha.css">
+</head>
+<body>
+<div id="mocha"></div>
+<div id="sandbox" style="display:none"></div>
+<script type="text/javascript" src="../i18n.js"></script>
+<script type="text/javascript" src="chai.js"></script>
+<script type="text/javascript" src="mocha.js"></script>
+<script type="text/javascript">
+    chai.should();
+    mocha.setup( 'bdd' );
+</script>
+<script type="text/javascript" src="test.js"></script>
+<script type="text/javascript">mocha.run()</script>
+</body>
+</html>
