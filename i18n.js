@@ -2,23 +2,30 @@
     "use strict";
     var that = w.i18n = {};
 
+    that.observeTarget = document.body;
+    that.observer = null;
+    that.config = {
+        attributes: true,
+        childList : true,
+        subtree   : true
+    };
+
+    that.observe = function () {
+        that._observe( that.mutationHandler );
+    };
+
     //TODO nodeNodeInserted fallback
-    that.observe = function ( fn ) {
+    that._observe = function ( fn ) {
         var MutationObserver = w.MutationObserver || w.WebKitMutationObserver;
 
         if ( MutationObserver ) {
-            var config = {
-                    attributes: true,
-                    childList : true,
-                    subtree   : true
-                }
-                , target = document.body
-                , observer;
-
-
-            observer = new MutationObserver( fn );
-            observer.observe( target, config );
+            that.observer = new MutationObserver( fn );
+            that.observer.observe( that.observeTarget, that.config );
         }
+    };
+
+    that.stop = function () {
+        that.observer && that.observer.disconnect();
     };
 
     that.replace = function ( el ) {
@@ -38,11 +45,10 @@
             var m = mutations[i];
 
             if ( m.type == "childList" ) {
-                var addedNodes = m.addedNodes
-                    , textNodes = [];
+                var addedNodes = m.addedNodes;
 
                 for ( var j = 0; j < addedNodes.length; j++ ) {
-                    textNodes = textNodes.concat( that.findTextNodes( addedNodes[j] ) );
+                    that.replace( addedNodes[j] );
                 }
             }
         }
@@ -89,10 +95,6 @@
             }
         }
         return nodes;
-    };
-
-    that.init = function () {
-        that.observe( that.mutationHandler );
     };
 
 })( window );
