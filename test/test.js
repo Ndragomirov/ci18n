@@ -21,14 +21,14 @@ describe( "i18n", function () {
     } )
 
     describe( "#replace", function () {
-        it( "should replace element's html", function () {
+        it( "should replace the `given` elements html", function () {
             var el = document.createElement( 'div' );
             el.innerHTML = "<p>hello,</p><span>__MSG_foo__</span>";
             i18n.replace( el );
             el.innerHTML.should.equal( "<p>hello,</p><span>foo</span>" )
         } )
 
-        it( "should replace element's attributes", function () {
+        it( "should replace the `given` elements attributes", function () {
             var el = document.createElement( 'div' );
             el.setAttribute( "i18n-foo", "__MSG_foo__" );
             el.setAttribute( "i18n-bar", "__MSG_bar__" );
@@ -48,6 +48,10 @@ describe( "i18n", function () {
         afterEach( function () {
             i18n.stop();
         } )
+
+        it( "should not replace elements html or attributes outside of the observable node", function () {
+            throw Error();
+        } );
 
         it( "should auto replace elements html on dom node insert", function ( done ) {
             var el = document.createElement( 'div' )

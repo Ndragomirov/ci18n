@@ -14,13 +14,14 @@
         that._observe( that.mutationHandler );
     };
 
-    //TODO nodeNodeInserted fallback
     that._observe = function ( fn ) {
         var MutationObserver = w.MutationObserver || w.WebKitMutationObserver;
 
         if ( MutationObserver ) {
             that.observer = new MutationObserver( fn );
             that.observer.observe( that.observeTarget, that.config );
+        } else {
+            throw new Error( "MutationObserver doesn't supported" );
         }
     };
 
