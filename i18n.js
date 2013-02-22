@@ -2,7 +2,6 @@
     "use strict";
     var that = w.i18n = {};
 
-    that.observeTarget = document.body;
     that.observer = null;
     that.config = {
         attributes: true,
@@ -10,70 +9,134 @@
         subtree   : true
     };
 
-    that.observe = function () {
-        that._observe( that.mutationHandler );
+    /**
+     * shortcuts
+     */
+    var slice = Array.prototype.slice
+        , CHILDLIST = "childList"
+        , ATTRIBUTES = "attributes"
+        , ELEMENT = Node.ELEMENT_NODE
+        , TEXTNODE = Node.TEXT_NODE;
+
+    /**
+     * Watch for element's html change
+     * @param el {HTMLElement}
+     * @public
+     */
+    that.observe = function ( el ) {
+        that._observe( el, that.mutationHandler );
     };
 
-    that._observe = function ( fn ) {
-        var MutationObserver = w.MutationObserver || w.WebKitMutationObserver;
+    /**
+     * Call given `fn` when `target` have changed
+     * @param target {HTMLElement}
+     * @param fn {Function}
+     * @private
+     */
+    that._observe = function ( target, fn ) {
+        var MutationObserver = w.MutationObserver || w.WebKitMutationObserver
+            , observeTarget = target || document.body;
 
         if ( MutationObserver ) {
             that.observer = new MutationObserver( fn );
-            that.observer.observe( that.observeTarget, that.config );
+            that.observer.observe( observeTarget, that.config );
         } else {
-            throw new Error( "MutationObserver doesn't supported" );
+            throw new Error( "Browser does not support MutationObserver" );
         }
     };
 
+    /**
+     * @public
+     */
     that.stop = function () {
         that.observer && that.observer.disconnect();
     };
 
-    that.replace = function ( el ) {
-        var textNodes = that.findTextNodes( el );
-        var attributes = that.findAttributes( el );
-        for ( var i = 0; i < textNodes.length; i++ ) {
-            textNodes[i].nodeValue = that.replacei18nMessage( textNodes[i].nodeValue );
+    /**
+     * Replace `i18n` placeholders with the values for the given `el` html
+     * @param el {HTMLElement}
+     * @private
+     */
+    that.replace = function ( el, opts ) {
+        var textNodes
+            , attributes
+            , content;
+
+        opts = opts || {content: true, attr: true};
+
+        if ( opts.content ) {
+            textNodes = that.findTextNodes( el );
+            for ( var i = 0; i < textNodes.length; i++ ) {
+                content = that.replacei18nMessage( textNodes[i].nodeValue );
+                if ( content !== textNodes[i].nodeValue ) {
+                    textNodes[i].nodeValue = content;
+                }
+            }
         }
-        for ( var j = 0; j < attributes.length; j++ ) {
-            attributes[j].value = that.replacei18nMessage( attributes[j].value );
-        }
-    };
-
-    that.mutationHandler = function ( mutations ) {
-        for ( var i = 0; i < mutations.length; i++ ) {
-
-            var m = mutations[i];
-
-            if ( m.type == "childList" ) {
-                var addedNodes = m.addedNodes;
-
-                for ( var j = 0; j < addedNodes.length; j++ ) {
-                    that.replace( addedNodes[j] );
+        if ( opts.attr ) {
+            attributes = that.findAttributes( el );
+            for ( var j = 0; j < attributes.length; j++ ) {
+                content = that.replacei18nMessage( attributes[j].value );
+                if ( content !== attributes[j].value ) {
+                    attributes[j].value = content;
                 }
             }
         }
     };
 
+    /**
+     *
+     * @param mutations {Array}
+     * @private
+     */
+    that.mutationHandler = function ( mutations ) {
+        for ( var i = 0; i < mutations.length; i++ ) {
+
+            var m = mutations[i];
+
+            if ( m.type === CHILDLIST ) {
+                var addedNodes = m.addedNodes;
+                for ( var j = 0; j < addedNodes.length; j++ ) {
+                    that.replace( addedNodes[j], {content: true, attr: true } );
+                }
+            }
+
+            if ( m.type === ATTRIBUTES ) {
+                that.replace( m.target, {attr: true} );
+            }
+        }
+    };
+
+    /**
+     * Replace messages placeholders with the values for the given `text`
+     * @param text {String}
+     * @private
+     * @return {String}
+     */
     that.replacei18nMessage = function ( text ) {
-        var replace = function ( str, msg ) {
-            return chrome.i18n.getMessage( msg );
+        var replace = function ( str, $1 ) {
+            return chrome.i18n.getMessage( $1 );
         };
 
         return text.replace( /__MSG_([\w_]+)__/g, replace );
     };
 
+
+    /**
+     * @param el {HTMLElement}
+     * @private
+     * @return {Array}
+     */
     that.findAttributes = function ( el ) {
-        var attrs = []
-            , slice = [].slice;
+        var attrs = [];
 
         //element node
-        if ( el.nodeType == 1 ) {
+        if ( ELEMENT === el.nodeType ) {
             if ( el.attributes ) {
                 attrs = attrs.concat( slice.call( el.attributes, 0 ) );
             }
 
-            for ( var child = el.firstChild; child != null; child = child.nextSibling ) {
+            for ( var child = el.firstChild; child !== null; child = child.nextSibling ) {
                 attrs = attrs.concat( that.findAttributes( child ) );
             }
         }
@@ -81,17 +144,21 @@
         return attrs;
     };
 
+    /**
+     * @param el {HTMLElement}
+     * @private
+     * @return {Array}
+     */
     that.findTextNodes = function ( el ) {
-        var nodes = [];
+        var nodes = []
+            , ignoreTags = ["SCRIPT", "TEXTAREA", "STYLE"];
 
-        //text node
-        if ( el.nodeType == 3 ) {
+        if ( TEXTNODE === el.nodeType ) {
             return [el];
         }
 
-        //element node
-        if ( el.nodeType == 1 ) {
-            for ( var child = el.firstChild; child != null; child = child.nextSibling ) {
+        if ( ELEMENT === el.nodeType && ignoreTags.indexOf( el.tagName ) === -1 ) {
+            for ( var child = el.firstChild; child !== null; child = child.nextSibling ) {
                 nodes = nodes.concat( that.findTextNodes( child ) );
             }
         }
