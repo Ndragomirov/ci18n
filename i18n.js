@@ -21,6 +21,17 @@
         }
     };
 
+    that.replace = function ( el ) {
+        var textNodes = that.findTextNodes( el );
+        var attributes = that.findAttributes( el );
+        for ( var i = 0; i < textNodes.length; i++ ) {
+            textNodes[i].nodeValue = that.replacei18nMessage( textNodes[i].nodeValue );
+        }
+        for ( var j = 0; j < attributes.length; j++ ) {
+            attributes[j].value = that.replacei18nMessage( attributes[j].value );
+        }
+    };
+
     that.mutationHandler = function ( mutations ) {
         for ( var i = 0; i < mutations.length; i++ ) {
 
@@ -43,6 +54,24 @@
         };
 
         return text.replace( /__MSG_([\w_]+)__/g, replace );
+    };
+
+    that.findAttributes = function ( el ) {
+        var attrs = []
+            , slice = [].slice;
+
+        //element node
+        if ( el.nodeType == 1 ) {
+            if ( el.attributes ) {
+                attrs = attrs.concat( slice.call( el.attributes, 0 ) );
+            }
+
+            for ( var child = el.firstChild; child != null; child = child.nextSibling ) {
+                attrs = attrs.concat( that.findAttributes( child ) );
+            }
+        }
+
+        return attrs;
     };
 
     that.findTextNodes = function ( el ) {

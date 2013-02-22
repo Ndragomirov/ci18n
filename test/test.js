@@ -15,32 +15,30 @@ before( function () {
 describe( "i18n", function () {
 
     describe( "#replacei18nMessage", function () {
-        it( "should replace __MSG_foo__ to foo at string '__MSG_foo__'", function () {
-            i18n.replacei18nMessage( "__MSG_foo__" ).should.equal( "foo" );
-        } )
-
-        it( "should replace __MSG_bar__ to bar at string '__MSG_bar__'", function () {
-            i18n.replacei18nMessage( "__MSG_bar__" ).should.equal( "bar" );
+        it( "should replace __MSG_foo__ to foo in '__MSG_foo__ and __MSG_bar__'", function () {
+            i18n.replacei18nMessage( "__MSG_foo__ and __MSG_bar__" ).should.equal( "foo and bar" );
         } )
     } )
 
-    describe( "#replaceHTML", function () {
+    describe( "#replace", function () {
         it( "should replace element's html", function () {
             var el = document.createElement( 'div' );
             el.innerHTML = "<p>hello,</p><span>__MSG_foo__</span>";
-            i18n.replaceHTML( el );
+            i18n.replace( el );
             el.innerHTML.should.equal( "<p>hello,</p><span>foo</span>" )
         } )
     } )
 
-    describe( "#replaceHTML", function () {
+    describe( "#replace", function () {
         it( "should replace element's attributes", function () {
             var el = document.createElement( 'div' );
             el.setAttribute( "i18n-foo", "__MSG_foo__" );
             el.setAttribute( "i18n-bar", "__MSG_bar__" );
-            i18n.replaceHTML( el );
+            el.setAttribute( "i18n-foo-and-bar", "__MSG_foo__ and __MSG_bar__" );
+            i18n.replace( el );
             el.getAttribute( "i18n-foo" ).should.equal( "foo" );
             el.getAttribute( "i18n-bar" ).should.equal( "bar" );
+            el.getAttribute( "i18n-foo-and-bar" ).should.equal( "foo and bar" );
         } )
     } )
 
@@ -57,6 +55,13 @@ describe( "i18n", function () {
 
     describe( "#observe", function () {
         it( "should auto replace elements attributes on change", function () {
+            var el = document.createElement( 'div' )
+                , sandbox = document.querySelector( "#sandbox" );
+
+            el.setAttribute( "i18n-foo", "__MSG_foo__" );
+            el.innerHTML = "__MSG_foo__";
+            sandbox.appendChild( el );
+            el.getAttribute( "i18n-foo" ).should.equal( "foo" );
 
         } )
     } )
