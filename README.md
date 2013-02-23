@@ -18,14 +18,22 @@ messages.json
 
 markup
 ```html
-<div> Example </div>
-<h1 some-attr="__MSG_bar__" other-attr="__MSG_baz__"> Hello, __MSG_foo__! </h1>
+<html>
+  <title> Example </title>
+  <body>
+    <h1 some-attr="__MSG_bar__" other-attr="__MSG_baz__"> Hello, __MSG_foo__! </h1>    
+  </body>
+</html>
 ```
 
 
 after
 =====
 ```html
-<div> Example </div>
-<h1 some-attr="bar" other-attr="baz"> Hello, foo! </h1>
+<html>
+  <title> Example </title>
+  <body>
+    <h1 some-attr="bar" other-attr="baz"> Hello, foo! </h1>
+  </body>
+</html>
 ```
